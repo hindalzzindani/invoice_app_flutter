@@ -33,6 +33,7 @@ class InvoiceItemRow extends StatelessWidget {
         ),
       ),
       child: Row(
+        textDirection: TextDirection.rtl,
         children: [
           // الرقم
           SizedBox(
@@ -99,6 +100,7 @@ class InvoiceItemRow extends StatelessWidget {
               ),
             ),
           ),
+
           const SizedBox(width: 4),
           // القيمة
           Expanded(
@@ -125,7 +127,7 @@ class InvoiceItemRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 4),
-          // زر الحذف
+          // زر الحذف (أول عنصر من اليمين)
           SizedBox(
             width: 30,
             child: IconButton(
@@ -137,6 +139,9 @@ class InvoiceItemRow extends StatelessWidget {
               constraints: const BoxConstraints(),
             ),
           ),
+          const SizedBox(width: 4),
+
+
         ],
       ),
     );

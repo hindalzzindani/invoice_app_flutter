@@ -15,11 +15,12 @@ class CreateInvoiceScreen extends ConsumerStatefulWidget {
 class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
   String? activeFieldId;
   String? activeFieldType;
+  late ScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
-    // إضافة صف أول تلقائياً عند فتح الشاشة
+    _scrollController = ScrollController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final items = ref.read(invoiceItemsProvider);
       if (items.isEmpty) {
@@ -33,12 +34,29 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
   }
 
   @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToNewRow() {
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final items = ref.watch(invoiceItemsProvider);
     final totalQuantity = ref.watch(totalQuantityProvider);
     final totalValue = ref.watch(totalValueProvider);
     final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
       appBar: AppBar(
@@ -50,17 +68,16 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
       ),
       body: Column(
         children: [
-          // النصف العلوي - الصفوف والإجمالي
           Expanded(
             flex: 1,
             child: SingleChildScrollView(
+              controller: _scrollController,
               child: Padding(
                 padding: const EdgeInsets.all(12.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // رأس الجدول
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                       decoration: BoxDecoration(
@@ -68,6 +85,7 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
+                        textDirection: TextDirection.rtl,
                         children: [
                           SizedBox(
                             width: 30,
@@ -129,7 +147,6 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    // الصفوف
                     if (items.isEmpty)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 32.0),
@@ -179,7 +196,6 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
                         },
                       ),
                     const SizedBox(height: 16),
-                    // الإجمالي
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -195,6 +211,7 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
                       child: Column(
                         children: [
                           Row(
+                            textDirection: TextDirection.rtl,
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
                               Flexible(
@@ -246,7 +263,6 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
               ),
             ),
           ),
-          // النصف السفلي - الحاسبة (ثابتة)
           Container(
             constraints: BoxConstraints(
               maxHeight: screenHeight * 0.5,
@@ -254,6 +270,8 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
             ),
             color: Colors.grey.shade50,
             child: KeyboardSection(
+              activeFieldId: activeFieldId,
+              activeFieldType: activeFieldType,
               onQuantityInput: (value) {
                 if (activeFieldId != null) {
                   final item = items.firstWhere((i) => i.id == activeFieldId);
@@ -271,16 +289,23 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
                 }
               },
               onAddNewRow: () {
-                ref.read(addInvoiceItemProvider.notifier).addItem('', '');
+                final notifier = ref.read(addInvoiceItemProvider.notifier);
+
+                // إضافة صف جديد
+                notifier.addItem('', '');
+
+                // جلب أحدث صف (آخر عنصر)
+                final updatedItems = ref.read(invoiceItemsProvider);
+                final newItem = updatedItems.last;
+
+                // جعل الصف الجديد هو النشط
                 setState(() {
-                  if (items.isNotEmpty) {
-                    activeFieldId = items.last.id;
-                    activeFieldType = 'quantity';
-                  }
+                  activeFieldId = newItem.id;
+                  activeFieldType = 'quantity'; // يبدأ بالكمية
                 });
+
+                _scrollToNewRow();
               },
-              activeFieldType: activeFieldType,
-              activeFieldId: activeFieldId,
             ),
           ),
         ],
@@ -289,34 +314,35 @@ class _CreateInvoiceScreenState extends ConsumerState<CreateInvoiceScreen> {
   }
 
   Widget _buildTotalCard(String label, String value, Color color) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.grey.shade600,
-            fontSize: 11,
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.shade600,
+            ),
+            textAlign: TextAlign.center,
           ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: color, width: 2),
-          ),
-          child: Text(
+          const SizedBox(height: 4),
+          Text(
             value,
             style: TextStyle(
+              fontSize: 18,
               fontWeight: FontWeight.bold,
-              fontSize: 14,
               color: color,
             ),
+            textAlign: TextAlign.center,
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

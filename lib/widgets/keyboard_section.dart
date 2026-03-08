@@ -110,9 +110,10 @@ class _KeyboardSectionState extends State<KeyboardSection> {
               ],
             ),
             const SizedBox(height: 12),
-            // الحاسبات
+            // الحاسبات - تم تبديل الترتيب: الكمية يمين، السعر يسار
             Row(
               children: [
+
                 // حاسبة الكمية (يمين)
                 Expanded(
                   child: Column(
@@ -160,8 +161,9 @@ class _KeyboardSectionState extends State<KeyboardSection> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
                 // حاسبة السعر (يسار)
+
+                const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     children: [
@@ -184,7 +186,7 @@ class _KeyboardSectionState extends State<KeyboardSection> {
                         children: [
                           ..._buildKeyboardButtons(
                             ['7', '8', '9', '4', '5', '6', '1', '2', '3', 'C', '0', '⌫'],
-                            (value) {
+                                (value) {
                               setState(() {
                                 if (value == 'C') {
                                   priceInput = '';

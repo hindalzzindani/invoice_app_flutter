@@ -10,9 +10,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   # UI Components
   cupertino_icons: ^1.0.8
+  flutter_localization: ^0.3.3
   material_design_icons_flutter: ^7.0.7296
 
   # State Management
@@ -52,6 +55,7 @@ dependencies:
 
   # Local Storage
   shared_preferences: ^2.2.2
+  device_info_plus: ^10.0.0
 
   # Date/Time
   table_calendar: ^3.0.9

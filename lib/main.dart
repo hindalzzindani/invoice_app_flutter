@@ -1,13 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'screens/create_invoice_screen.dart';
 import 'screens/invoice_summary_screen.dart';
 import 'screens/saved_invoices_screen.dart';
 import 'screens/invoice_detail_screen.dart';
+
+// ✅ تم تعطيل شاشة وخدمة التفعيل مؤقتاً
+// import 'screens/activation_screen.dart';
+// import 'services/activation_service.dart';
+
 import 'models/invoice.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // ❌ تعطيل التحقق من التفعيل مؤقتاً
+  // final activationService = ActivationService();
+  // final bool isActivated = await activationService.isActivated();
+
   runApp(
     const ProviderScope(
       child: MyApp(),
@@ -23,6 +34,19 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'تطبيق الفواتير',
       debugShowCheckedModeBanner: false,
+
+      // إعدادات اللغة
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('ar', 'SA'),
+        Locale('en', 'US'),
+      ],
+      locale: const Locale('ar', 'SA'),
+
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
@@ -30,8 +54,19 @@ class MyApp extends StatelessWidget {
           brightness: Brightness.light,
         ),
         fontFamily: 'Almarai',
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
+
+      builder: (context, child) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: child!,
+        );
+      },
+
+      // ✅ فتح التطبيق مباشرة بدون تفعيل
       home: const HomeScreen(),
+
       routes: {
         '/create_invoice': (context) => const CreateInvoiceScreen(),
         '/saved_invoices': (context) => const SavedInvoicesScreen(),
@@ -43,11 +78,11 @@ class MyApp extends StatelessWidget {
             totalValue: args['totalValue'],
           );
         },
-        '/invoice_detail': (context) {
-          final invoice = ModalRoute.of(context)!.settings.arguments as Invoice;
-          return InvoiceDetailScreen(invoice: invoice);
-        },
+
+        // ❌ تعطيل مسار التفعيل مؤقتاً
+        // '/activation': (context) => const ActivationScreen(),
       },
+
       onGenerateRoute: (settings) {
         if (settings.name == '/invoice_detail') {
           final invoice = settings.arguments as Invoice;
@@ -110,7 +145,7 @@ class HomeScreen extends StatelessWidget {
                   'إدارة احترافية للفواتير والمبيعات',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white70,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -127,14 +162,10 @@ class HomeScreen extends StatelessWidget {
                         label: const Text('إنشاء فاتورة جديدة'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
-                          foregroundColor: Colors.blue.shade900,
+                          foregroundColor: Colors.blue,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 32,
                             vertical: 16,
-                          ),
-                          textStyle: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
                           ),
                           minimumSize: const Size(double.infinity, 56),
                         ),
@@ -147,21 +178,13 @@ class HomeScreen extends StatelessWidget {
                         icon: const Icon(Icons.history),
                         label: const Text('الفواتير المحفوظة'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white.withOpacity(0.2),
+                          backgroundColor: Colors.white24,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 32,
                             vertical: 16,
                           ),
-                          textStyle: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
                           minimumSize: const Size(double.infinity, 56),
-                          side: const BorderSide(
-                            color: Colors.white,
-                            width: 2,
-                          ),
                         ),
                       ),
                     ],

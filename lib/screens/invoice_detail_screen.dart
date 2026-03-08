@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -346,176 +347,228 @@ class InvoiceDetailScreen extends StatelessWidget {
   }
 
   Future<void> _printInvoice() async {
-    final pdf = pw.Document();
+    try {
+      // محاولة تحميل الخط العربي
+      pw.Font? arabicFont;
+      try {
+        final fontData = await rootBundle.load('assets/fonts/Cairo-Regular.ttf');
+        arabicFont = pw.Font.ttf(fontData);
+      } catch (e) {
+        // إذا لم يتم العثور على الخط، سيتم استخدام الخط الافتراضي
+        print('تحذير: لم يتم العثور على خط Cairo. تأكد من وجود assets/fonts/Cairo-Regular.ttf');
+      }
 
-    pdf.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        textDirection: pw.TextDirection.rtl,
-        build: (pw.Context context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-            children: [
-              pw.Text(
-                'فاتورة المبيعات',
-                style: pw.TextStyle(
-                  fontSize: 24,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-                textAlign: pw.TextAlign.center,
-              ),
-              pw.SizedBox(height: 20),
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Text('رقم الفاتورة: ${invoice.invoiceNumber}'),
-                  pw.Text('التاريخ: ${_formatDate(invoice.createdDate)}'),
-                ],
-              ),
-              pw.SizedBox(height: 20),
-              pw.Text(
-                'الأصناف',
-                style: pw.TextStyle(
-                  fontSize: 16,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-              pw.SizedBox(height: 10),
-              pw.Table(
-                border: pw.TableBorder.all(),
-                children: [
-                  pw.TableRow(
-                    decoration: pw.BoxDecoration(
-                      color: PdfColor.fromInt(0xFF0066CC),
-                    ),
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'الصنف',
-                          style: pw.TextStyle(
-                            color: PdfColors.white,
-                            fontWeight: pw.FontWeight.bold,
-                          ),
-                          textAlign: pw.TextAlign.center,
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'الكمية',
-                          style: pw.TextStyle(
-                            color: PdfColors.white,
-                            fontWeight: pw.FontWeight.bold,
-                          ),
-                          textAlign: pw.TextAlign.center,
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'السعر',
-                          style: pw.TextStyle(
-                            color: PdfColors.white,
-                            fontWeight: pw.FontWeight.bold,
-                          ),
-                          textAlign: pw.TextAlign.center,
-                        ),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(
-                          'الإجمالي',
-                          style: pw.TextStyle(
-                            color: PdfColors.white,
-                            fontWeight: pw.FontWeight.bold,
-                          ),
-                          textAlign: pw.TextAlign.center,
-                        ),
-                      ),
-                    ],
+      final pdf = pw.Document();
+
+      pdf.addPage(
+        pw.Page(
+          pageFormat: PdfPageFormat.a4,
+          textDirection: pw.TextDirection.rtl,
+          build: (pw.Context context) {
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+              children: [
+                pw.Text(
+                  'فاتورة المبيعات',
+                  style: pw.TextStyle(
+                    font: arabicFont,
+                    fontSize: 24,
+                    fontWeight: pw.FontWeight.bold,
                   ),
-                  ...invoice.items.asMap().entries.map((entry) {
-                    final item = entry.value;
-                    return pw.TableRow(
+                  textAlign: pw.TextAlign.center,
+                ),
+                pw.SizedBox(height: 20),
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text(
+                      'رقم الفاتورة: ${invoice.invoiceNumber}',
+                      style: pw.TextStyle(font: arabicFont),
+                    ),
+                    pw.Text(
+                      'التاريخ: ${_formatDate(invoice.createdDate)}',
+                      style: pw.TextStyle(font: arabicFont),
+                    ),
+                  ],
+                ),
+                pw.SizedBox(height: 20),
+                pw.Text(
+                  'الأصناف',
+                  style: pw.TextStyle(
+                    font: arabicFont,
+                    fontSize: 16,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.SizedBox(height: 10),
+                pw.Table(
+                  border: pw.TableBorder.all(),
+                  children: [
+                    pw.TableRow(
+                      decoration: pw.BoxDecoration(
+                        color: PdfColor.fromInt(0xFF0066CC),
+                      ),
                       children: [
                         pw.Padding(
                           padding: const pw.EdgeInsets.all(8),
                           child: pw.Text(
-                            'الصنف #${entry.key + 1}',
+                            'الصنف',
+                            style: pw.TextStyle(
+                              font: arabicFont,
+                              color: PdfColors.white,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
                             textAlign: pw.TextAlign.center,
                           ),
                         ),
                         pw.Padding(
                           padding: const pw.EdgeInsets.all(8),
                           child: pw.Text(
-                            item.quantity.toString(),
+                            'الكمية',
+                            style: pw.TextStyle(
+                              font: arabicFont,
+                              color: PdfColors.white,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
                             textAlign: pw.TextAlign.center,
                           ),
                         ),
                         pw.Padding(
                           padding: const pw.EdgeInsets.all(8),
                           child: pw.Text(
-                            item.price.toString(),
+                            'السعر',
+                            style: pw.TextStyle(
+                              font: arabicFont,
+                              color: PdfColors.white,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
                             textAlign: pw.TextAlign.center,
                           ),
                         ),
                         pw.Padding(
                           padding: const pw.EdgeInsets.all(8),
                           child: pw.Text(
-                            item.total.toStringAsFixed(2),
+                            'الإجمالي',
+                            style: pw.TextStyle(
+                              font: arabicFont,
+                              color: PdfColors.white,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
                             textAlign: pw.TextAlign.center,
                           ),
                         ),
                       ],
-                    );
-                  }),
-                ],
-              ),
-              pw.SizedBox(height: 20),
-              pw.Container(
-                alignment: pw.Alignment.centerLeft,
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text('إجمالي الكميات: ${invoice.totalQuantity}'),
-                    pw.Text('إجمالي القيم: ${invoice.totalValue.toStringAsFixed(2)}'),
-                    pw.SizedBox(height: 10),
-                    if (invoice.expenses > 0)
-                      pw.Text('المصروفات: ${invoice.expenses.toStringAsFixed(2)}'),
-                    if (invoice.guardExpenses > 0)
-                      pw.Text('مصاريف حراسة: ${invoice.guardExpenses.toStringAsFixed(2)}'),
-                    if (invoice.rentExpenses > 0)
-                      pw.Text('مصاريف إيجار: ${invoice.rentExpenses.toStringAsFixed(2)}'),
-                    if (invoice.otherExpenses > 0)
-                      pw.Text('مصاريف أخرى: ${invoice.otherExpenses.toStringAsFixed(2)}'),
-                    if (invoice.marketing > 0)
-                      pw.Text('التسويق (40%): ${invoice.marketing.toStringAsFixed(2)}'),
-                    pw.SizedBox(height: 10),
-                    pw.Container(
-                      padding: const pw.EdgeInsets.all(8),
-                      decoration: pw.BoxDecoration(
-                        border: pw.Border.all(),
-                      ),
-                      child: pw.Text(
-                        'الصافي النهائي: ${invoice.netTotal.toStringAsFixed(2)}',
-                        style: pw.TextStyle(
-                          fontSize: 16,
-                          fontWeight: pw.FontWeight.bold,
-                        ),
-                      ),
                     ),
+                    ...invoice.items.asMap().entries.map((entry) {
+                      final item = entry.value;
+                      return pw.TableRow(
+                        children: [
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.all(8),
+                            child: pw.Text(
+                              'الصنف #${entry.key + 1}',
+                              style: pw.TextStyle(font: arabicFont),
+                              textAlign: pw.TextAlign.center,
+                            ),
+                          ),
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.all(8),
+                            child: pw.Text(
+                              item.quantity.toString(),
+                              style: pw.TextStyle(font: arabicFont),
+                              textAlign: pw.TextAlign.center,
+                            ),
+                          ),
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.all(8),
+                            child: pw.Text(
+                              item.price.toString(),
+                              style: pw.TextStyle(font: arabicFont),
+                              textAlign: pw.TextAlign.center,
+                            ),
+                          ),
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.all(8),
+                            child: pw.Text(
+                              item.total.toStringAsFixed(2),
+                              style: pw.TextStyle(font: arabicFont),
+                              textAlign: pw.TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      );
+                    }),
                   ],
                 ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
+                pw.SizedBox(height: 20),
+                pw.Container(
+                  alignment: pw.Alignment.centerLeft,
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        'إجمالي الكميات: ${invoice.totalQuantity}',
+                        style: pw.TextStyle(font: arabicFont),
+                      ),
+                      pw.Text(
+                        'إجمالي القيم: ${invoice.totalValue.toStringAsFixed(2)}',
+                        style: pw.TextStyle(font: arabicFont),
+                      ),
+                      pw.SizedBox(height: 10),
+                      if (invoice.expenses > 0)
+                        pw.Text(
+                          'المصروفات: ${invoice.expenses.toStringAsFixed(2)}',
+                          style: pw.TextStyle(font: arabicFont),
+                        ),
+                      if (invoice.guardExpenses > 0)
+                        pw.Text(
+                          'مصاريف حراسة: ${invoice.guardExpenses.toStringAsFixed(2)}',
+                          style: pw.TextStyle(font: arabicFont),
+                        ),
+                      if (invoice.rentExpenses > 0)
+                        pw.Text(
+                          'مصاريف إيجار: ${invoice.rentExpenses.toStringAsFixed(2)}',
+                          style: pw.TextStyle(font: arabicFont),
+                        ),
+                      if (invoice.otherExpenses > 0)
+                        pw.Text(
+                          'مصاريف أخرى: ${invoice.otherExpenses.toStringAsFixed(2)}',
+                          style: pw.TextStyle(font: arabicFont),
+                        ),
+                      if (invoice.marketing > 0)
+                        pw.Text(
+                          'التسويق (40%): ${invoice.marketing.toStringAsFixed(2)}',
+                          style: pw.TextStyle(font: arabicFont),
+                        ),
+                      pw.SizedBox(height: 10),
+                      pw.Container(
+                        padding: const pw.EdgeInsets.all(8),
+                        decoration: pw.BoxDecoration(
+                          border: pw.Border.all(),
+                        ),
+                        child: pw.Text(
+                          'الصافي النهائي: ${invoice.netTotal.toStringAsFixed(2)}',
+                          style: pw.TextStyle(
+                            font: arabicFont,
+                            fontSize: 16,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      );
 
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdf.save(),
-    );
+      await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => pdf.save(),
+      );
+    } catch (e) {
+      print('خطأ في الطباعة: $e');
+    }
   }
 }

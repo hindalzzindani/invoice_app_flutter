@@ -18,6 +18,7 @@ class SavedInvoicesScreen extends ConsumerWidget {
         backgroundColor: Colors.blue.shade900,
         foregroundColor: Colors.white,
       ),
+
       body: invoicesAsync.when(
         data: (invoices) {
           if (invoices.isEmpty) {
